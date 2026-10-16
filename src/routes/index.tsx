@@ -72,7 +72,7 @@ function Index() {
   useEffect(() => {
     hoverRef.current = hover;
     if (!isSnappedRef.current) {
-      targetR.current = hover ? 170 : 0;
+      targetR.current = hover ? 115 : 0;
     }
   }, [hover]);
 
@@ -140,7 +140,7 @@ function Index() {
     snapTimerRef.current = setTimeout(() => {
       setIsSnapped(false);
       isSnappedRef.current = false;
-      targetR.current = hoverRef.current ? 170 : 0;
+      targetR.current = hoverRef.current ? 115 : 0;
     }, 2500);
   };
 
