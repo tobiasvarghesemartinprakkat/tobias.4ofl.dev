@@ -6,9 +6,9 @@ import { ReelGrid } from "@/components/ReelGrid";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Tobias Varghese — Reel Creator" },
+      { title: "Tobias Varghese" },
       { name: "description", content: "Reels, vlogs and short-form stories by Tobias Varghese." },
-      { property: "og:title", content: "Tobias Varghese — Reel Creator" },
+      { property: "og:title", content: "Tobias Varghese" },
       { property: "og:description", content: "Reels, vlogs and short-form stories by Tobias Varghese." },
     ],
   }),
