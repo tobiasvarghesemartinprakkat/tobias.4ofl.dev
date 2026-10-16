@@ -1,4 +1,4 @@
-@import "tailwindcss" source(none);
+@import "tailwindcss";
 @source "../src";
 @import "tw-animate-css";
 
@@ -156,10 +156,10 @@
 }
 @utility reveal-color {
   clip-path: circle(var(--r, 0px) at var(--mx, 50%) var(--my, 50%));
-  transition: clip-path 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-  transform: scale(1.09);
+  transform: scale(1.08);
   transform-origin: var(--mx, 50%) var(--my, 50%);
   filter: saturate(1.35);
+  will-change: clip-path;
 }
 @utility reveal-ring {
   pointer-events: none;
@@ -176,8 +176,19 @@
     0 0 38px color-mix(in oklab, var(--primary) 55%, transparent) inset,
     0 0 26px color-mix(in oklab, var(--primary) 40%, transparent);
   opacity: var(--ring-o, 0);
-  transition:
-    opacity 0.3s ease,
-    width 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-    height 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 0.25s ease;
+  will-change: left, top, width, height, opacity;
 }
+
+@keyframes shutterFlash {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+

@@ -20,7 +20,7 @@ export const Route = createFileRoute("/contact")({
           rel="noreferrer"
           className="block hover:text-primary"
         >
-          Instagram (@_t0by_01) ↗
+          Instagram ↗
         </a>
       </div>
     </main>
