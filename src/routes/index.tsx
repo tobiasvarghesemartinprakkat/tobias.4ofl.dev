@@ -63,7 +63,13 @@ function Index() {
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    const checkMobile = () => {
+      const isTouch =
+        window.innerWidth < 768 ||
+        (typeof window.matchMedia === "function" &&
+          window.matchMedia("(hover: none) and (pointer: coarse)").matches);
+      setIsMobile(isTouch);
+    };
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -221,7 +227,6 @@ function Index() {
             };
           }}
           onTouchStart={(e) => {
-            isInteracting.current = true;
             const touch = e.touches[0];
             if (!touch) return;
             touchStartRef.current = {
@@ -229,6 +234,8 @@ function Index() {
               y: touch.clientY,
               time: Date.now(),
             };
+            if (isMobile) return;
+            isInteracting.current = true;
             const r = e.currentTarget.getBoundingClientRect();
             targetPos.current = {
               x: Math.max(0, Math.min(100, ((touch.clientX - r.left) / r.width) * 100)),
@@ -239,6 +246,7 @@ function Index() {
             }
           }}
           onTouchMove={(e) => {
+            if (isMobile) return;
             isInteracting.current = true;
             const touch = e.touches[0];
             if (!touch) return;
@@ -257,7 +265,7 @@ function Index() {
             // Quick tap: trigger camera shutter snap
             if (dt < 300 && dx < 20 && dy < 20) {
               handleSnap();
-            } else {
+            } else if (!isMobile) {
               isInteracting.current = false;
               if (!isSnappedRef.current) {
                 targetR.current = 0;
@@ -275,16 +283,29 @@ function Index() {
           {/* Grayscale base photo */}
           <img src={photo} alt="Tobias Varghese" className="img-mono pointer-events-none block w-full" />
 
-          {/* Dynamic color reveal photo */}
+          {/* Dynamic color reveal: on mobile, scroll-driven color bloom; on desktop, cursor spotlight */}
           <img
             src={photo}
             alt=""
             aria-hidden
-            className="reveal-color pointer-events-none absolute inset-0 block w-full"
+            className={
+              isMobile
+                ? "pointer-events-none absolute inset-0 block w-full"
+                : "reveal-color pointer-events-none absolute inset-0 block w-full"
+            }
+            style={
+              isMobile
+                ? {
+                    opacity: isSnapped ? 1 : Math.min(1, Math.max(0, progress * 4)),
+                    filter: "saturate(1.25)",
+                    transition: isSnapped ? "opacity 160ms ease-out" : "none",
+                  }
+                : undefined
+            }
           />
 
-          {/* Aperture ring overlay */}
-          <div aria-hidden className="reveal-ring" />
+          {/* Aperture ring overlay (desktop only) */}
+          {!isMobile && <div aria-hidden className="reveal-ring" />}
         </div>
 
         {/* Responsive Hero Corner Metadata */}
