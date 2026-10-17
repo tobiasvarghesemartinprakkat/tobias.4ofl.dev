@@ -9,11 +9,14 @@ const links = [
 
 export function SiteNav() {
   return (
-    <header className="fixed inset-x-0 top-0 z-[100] flex items-center justify-between border-b border-border/50 bg-background/80 px-6 py-4 backdrop-blur-md md:px-12">
-      <Link to="/" className="text-sm font-semibold tracking-widest text-primary transition-opacity hover:opacity-80">
-        _t0by_01
+    <header className="fixed inset-x-0 top-0 z-[100] flex items-center justify-between border-b border-border/50 bg-background/80 px-4 py-3.5 backdrop-blur-md sm:px-6 md:px-12 md:py-4">
+      <Link
+        to="/"
+        className="text-xs font-semibold uppercase tracking-widest text-primary transition-opacity hover:opacity-80 sm:text-sm"
+      >
+        Reel Creator
       </Link>
-      <nav className="flex items-center gap-5 text-xs font-semibold uppercase tracking-widest md:gap-8">
+      <nav className="flex items-center gap-3.5 text-[11px] font-semibold uppercase tracking-wider sm:gap-6 sm:text-xs sm:tracking-widest md:gap-8">
         {links.map((l) => (
           <Link
             key={l.to}

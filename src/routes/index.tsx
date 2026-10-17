@@ -60,19 +60,32 @@ function Index() {
 
   const heroRef = useRef<HTMLElement>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
-  const targetPos = useRef({ x: 50, y: 50 });
-  const currentPos = useRef({ x: 50, y: 50 });
+  const targetPos = useRef({ x: 50, y: 38 });
+  const currentPos = useRef({ x: 50, y: 38 });
   const targetR = useRef(0);
   const currentR = useRef(0);
   const hoverRef = useRef(false);
   const isSnappedRef = useRef(false);
+  const isInteracting = useRef(false);
+  const lastInteractionTime = useRef(Date.now());
+  const touchStartRef = useRef({ x: 0, y: 0, time: 0 });
   const snapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Sync hover with target radius
+  // Sync hover state with target radius when interacting
   useEffect(() => {
     hoverRef.current = hover;
-    if (!isSnappedRef.current) {
-      targetR.current = hover ? 115 : 0;
+    if (hover) {
+      isInteracting.current = true;
+      lastInteractionTime.current = Date.now();
+      if (!isSnappedRef.current) {
+        targetR.current = 115;
+      }
+    } else {
+      isInteracting.current = false;
+      lastInteractionTime.current = Date.now();
+      if (!isSnappedRef.current) {
+        targetR.current = 0;
+      }
     }
   }, [hover]);
 
@@ -80,18 +93,29 @@ function Index() {
   useEffect(() => {
     const onScroll = () => {
       const h = heroRef.current?.offsetHeight ?? window.innerHeight;
-      setProgress(Math.min(1, Math.max(0, window.scrollY / (h * 0.8))));
+      setProgress(Math.min(1, Math.max(0, window.scrollY / (h * 0.85))));
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // 60fps/120fps Gimbal Physics / Smooth Spring Lag Loop
+  // 60fps/120fps Gimbal Physics, Spring Lag & Ambient Auto-Sweep
   useEffect(() => {
     let rafId: number;
 
     const animate = () => {
+      const now = performance.now();
+      const timeSinceInteraction = Date.now() - lastInteractionTime.current;
+
+      // Pillar 3: Ambient Auto-Sweep / Breathing Scanner when idle (> 1.8s)
+      if (!isInteracting.current && !isSnappedRef.current && timeSinceInteraction > 1800) {
+        const t = now * 0.0011;
+        targetPos.current.x = 50 + Math.sin(t) * 15;
+        targetPos.current.y = 38 + Math.cos(t * 1.3) * 10;
+        targetR.current = 90 + Math.sin(t * 1.8) * 12; // breathes between ~78px and 102px
+      }
+
       // Fluid head gimbal physics: lerp position with inertia
       const dx = targetPos.current.x - currentPos.current.x;
       const dy = targetPos.current.y - currentPos.current.y;
@@ -119,15 +143,22 @@ function Index() {
     return () => cancelAnimationFrame(rafId);
   }, []);
 
-  // Camera Shutter Snap on Click
+  // Camera Shutter Snap (Pillar 2: Shutter Flash, Sound, Haptic Vibration & Full-Color Burst)
   const handleSnap = () => {
     playShutterSound();
+
+    // Haptic vibration on supported smartphones
+    if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+      try {
+        navigator.vibrate([25, 20, 25]);
+      } catch {}
+    }
 
     // Trigger quick 150ms screen shutter flash
     setIsFlashing(true);
     setTimeout(() => setIsFlashing(false), 160);
 
-    // Temporarily unlock full-color snapshot frame
+    // Unlock full-color snapshot frame
     setIsSnapped(true);
     isSnappedRef.current = true;
     targetR.current = 1500; // Expands outward to reveal full color
@@ -141,6 +172,7 @@ function Index() {
       setIsSnapped(false);
       isSnappedRef.current = false;
       targetR.current = hoverRef.current ? 115 : 0;
+      lastInteractionTime.current = Date.now();
     }, 2500);
   };
 
@@ -156,35 +188,92 @@ function Index() {
           />
         )}
 
-        <div className="absolute right-6 top-20 text-sm font-semibold uppercase tracking-widest text-primary md:right-12">
+        <div className="absolute right-4 top-16 text-xs font-semibold uppercase tracking-widest text-primary sm:text-sm md:right-12 md:top-20">
           Kerala · India
         </div>
 
         <h1
-          className="text-giant absolute inset-x-0 top-[55%] -translate-y-1/2 select-none text-center text-primary"
-          style={{ transform: `translate(${progress * 15}%, -50%)` }}
+          className="text-giant absolute inset-x-0 top-[52%] -translate-y-1/2 select-none text-center text-primary"
+          style={{
+            transform: `translate(calc(-50% + ${progress * 10}vw), -50%)`,
+            left: "50%",
+            opacity: Math.max(0, 1 - progress * 0.75),
+          }}
         >
           TOBIAS
         </h1>
 
+        {/* Interactive Cutout with Concept A: Gradient Feather Dissolve & Sinking Depth Drift */}
         <div
           ref={imageContainerRef}
           role="button"
           tabIndex={0}
-          aria-label="Tobias Varghese interactive portrait. Click to snap shutter."
-          className="group absolute bottom-0 left-1/2 w-[min(90vw,620px)] cursor-pointer select-none"
+          aria-label="Tobias Varghese interactive portrait. Click or tap to snap shutter."
+          className="group absolute bottom-0 left-1/2 w-[min(94vw,620px)] cursor-pointer select-none touch-manipulation"
           style={{
-            transform: `translateX(calc(-50% - ${progress * 80}vw))`,
-            opacity: 1 - progress,
+            transform: `translate(calc(-50% - ${progress * 26}vw), ${-progress * 10}vh) scale(${1 - progress * 0.16})`,
+            opacity: Math.max(0, 1 - Math.pow(progress, 1.25)),
+            filter: `blur(${progress * 7}px)`,
+            WebkitMaskImage: `linear-gradient(to bottom, black 0%, black ${Math.max(0, 100 - progress * 135)}%, transparent 100%)`,
+            maskImage: `linear-gradient(to bottom, black 0%, black ${Math.max(0, 100 - progress * 135)}%, transparent 100%)`,
           }}
           onMouseEnter={() => setHover(true)}
           onMouseLeave={() => setHover(false)}
           onMouseMove={(e) => {
+            isInteracting.current = true;
+            lastInteractionTime.current = Date.now();
             const r = e.currentTarget.getBoundingClientRect();
             targetPos.current = {
               x: ((e.clientX - r.left) / r.width) * 100,
               y: ((e.clientY - r.top) / r.height) * 100,
             };
+          }}
+          onTouchStart={(e) => {
+            isInteracting.current = true;
+            lastInteractionTime.current = Date.now();
+            const touch = e.touches[0];
+            if (!touch) return;
+            touchStartRef.current = {
+              x: touch.clientX,
+              y: touch.clientY,
+              time: Date.now(),
+            };
+            const r = e.currentTarget.getBoundingClientRect();
+            targetPos.current = {
+              x: Math.max(0, Math.min(100, ((touch.clientX - r.left) / r.width) * 100)),
+              y: Math.max(0, Math.min(100, ((touch.clientY - r.top) / r.height) * 100)),
+            };
+            if (!isSnappedRef.current) {
+              targetR.current = 100;
+            }
+          }}
+          onTouchMove={(e) => {
+            isInteracting.current = true;
+            lastInteractionTime.current = Date.now();
+            const touch = e.touches[0];
+            if (!touch) return;
+            const r = e.currentTarget.getBoundingClientRect();
+            targetPos.current = {
+              x: Math.max(0, Math.min(100, ((touch.clientX - r.left) / r.width) * 100)),
+              y: Math.max(0, Math.min(100, ((touch.clientY - r.top) / r.height) * 100)),
+            };
+          }}
+          onTouchEnd={(e) => {
+            const dt = Date.now() - touchStartRef.current.time;
+            const changedTouch = e.changedTouches[0];
+            const dx = changedTouch ? Math.abs(changedTouch.clientX - touchStartRef.current.x) : 99;
+            const dy = changedTouch ? Math.abs(changedTouch.clientY - touchStartRef.current.y) : 99;
+
+            // Quick tap: trigger camera shutter snap
+            if (dt < 300 && dx < 20 && dy < 20) {
+              handleSnap();
+            } else {
+              isInteracting.current = false;
+              lastInteractionTime.current = Date.now();
+              if (!isSnappedRef.current) {
+                targetR.current = 0;
+              }
+            }
           }}
           onClick={handleSnap}
           onKeyDown={(e) => {
@@ -209,20 +298,21 @@ function Index() {
           <div aria-hidden className="reveal-ring" />
         </div>
 
-        <div className="absolute bottom-10 left-6 md:left-12">
-          <p className="text-lg font-extrabold uppercase text-primary">Creative</p>
-          <p className="text-lg font-extrabold uppercase">Reel Creator</p>
+        {/* Responsive Hero Corner Metadata */}
+        <div className="absolute bottom-6 left-4 sm:bottom-10 sm:left-6 md:left-12">
+          <p className="text-base font-extrabold uppercase text-primary sm:text-lg">Creative</p>
+          <p className="text-base font-extrabold uppercase sm:text-lg">Reel Creator</p>
         </div>
-        <div className="absolute bottom-24 right-6 text-right md:right-12">
-          <p className="text-lg font-extrabold uppercase text-primary">Tobias</p>
-          <p className="text-lg uppercase text-primary">Varghese</p>
+        <div className="absolute bottom-16 right-4 text-right sm:bottom-24 sm:right-6 md:right-12">
+          <p className="text-base font-extrabold uppercase text-primary sm:text-lg">Tobias</p>
+          <p className="text-base uppercase text-primary sm:text-lg">Varghese</p>
         </div>
-        <div className="absolute bottom-10 right-6 h-8 w-8 bg-primary md:right-12" />
+        <div className="absolute bottom-6 right-4 h-6 w-6 bg-primary sm:bottom-10 sm:right-6 sm:h-8 sm:w-8 md:right-12" />
       </section>
 
-      <section className="px-6 py-24 md:px-12">
-        <div className="mb-10 flex items-end justify-between">
-          <h2 className="font-display text-6xl text-primary md:text-8xl">CONTENT</h2>
+      <section className="px-4 py-20 sm:px-6 sm:py-24 md:px-12">
+        <div className="mb-8 flex items-end justify-between sm:mb-10">
+          <h2 className="font-display text-5xl text-primary sm:text-6xl md:text-8xl">CONTENT</h2>
           <Link to="/content" className="text-xs font-semibold uppercase tracking-widest hover:text-primary">
             View all →
           </Link>

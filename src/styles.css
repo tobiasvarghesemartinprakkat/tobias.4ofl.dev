@@ -147,7 +147,7 @@
 
 @utility text-giant {
   font-family: var(--font-display);
-  font-size: clamp(5rem, 22vw, 22rem);
+  font-size: clamp(4.25rem, 21vw, 22rem);
   line-height: 0.85;
   letter-spacing: -0.01em;
 }
