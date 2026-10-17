@@ -180,6 +180,8 @@
   will-change: left, top, width, height, opacity;
 }
 
+
+
 @keyframes shutterFlash {
   0% {
     opacity: 0;

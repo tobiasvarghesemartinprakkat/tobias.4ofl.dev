@@ -57,9 +57,17 @@ function Index() {
   const [hover, setHover] = useState(false);
   const [isSnapped, setIsSnapped] = useState(false);
   const [isFlashing, setIsFlashing] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const heroRef = useRef<HTMLElement>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
   const targetPos = useRef({ x: 50, y: 38 });
   const currentPos = useRef({ x: 50, y: 38 });
   const targetR = useRef(0);
@@ -67,22 +75,19 @@ function Index() {
   const hoverRef = useRef(false);
   const isSnappedRef = useRef(false);
   const isInteracting = useRef(false);
-  const lastInteractionTime = useRef(Date.now());
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 });
   const snapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Sync hover state with target radius when interacting
+  // Sync hover state with target radius
   useEffect(() => {
     hoverRef.current = hover;
     if (hover) {
       isInteracting.current = true;
-      lastInteractionTime.current = Date.now();
       if (!isSnappedRef.current) {
-        targetR.current = 115;
+        targetR.current = 120;
       }
     } else {
       isInteracting.current = false;
-      lastInteractionTime.current = Date.now();
       if (!isSnappedRef.current) {
         targetR.current = 0;
       }
@@ -100,12 +105,11 @@ function Index() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // 60fps/120fps Gimbal Physics, Spring Lag & Ambient Auto-Sweep
+  // 60fps/120fps Gimbal Physics & Inertia Lag
   useEffect(() => {
     let rafId: number;
 
     const animate = () => {
-
       // Fluid head gimbal physics: lerp position with inertia
       const dx = targetPos.current.x - currentPos.current.x;
       const dy = targetPos.current.y - currentPos.current.y;
@@ -133,7 +137,7 @@ function Index() {
     return () => cancelAnimationFrame(rafId);
   }, []);
 
-  // Camera Shutter Snap (Pillar 2: Shutter Flash, Sound, Haptic Vibration & Full-Color Burst)
+  // Camera Shutter Snap
   const handleSnap = () => {
     playShutterSound();
 
@@ -161,8 +165,7 @@ function Index() {
     snapTimerRef.current = setTimeout(() => {
       setIsSnapped(false);
       isSnappedRef.current = false;
-      targetR.current = hoverRef.current ? 115 : 0;
-      lastInteractionTime.current = Date.now();
+      targetR.current = hoverRef.current ? 120 : 0;
     }, 2500);
   };
 
@@ -185,7 +188,7 @@ function Index() {
         <h1
           className="text-giant absolute inset-x-0 top-[52%] -translate-y-1/2 select-none text-center text-primary"
           style={{
-            transform: `translate(calc(-50% + ${progress * 10}vw), -50%)`,
+            transform: `translate(calc(-50% + ${isMobile ? 0 : progress * 10}vw), -50%)`,
             left: "50%",
             opacity: Math.max(0, 1 - progress * 0.75),
           }}
@@ -193,15 +196,15 @@ function Index() {
           TOBIAS
         </h1>
 
-        {/* Interactive Cutout with Concept A: Gradient Feather Dissolve & Sinking Depth Drift */}
+        {/* Interactive Cutout with Concept A: Gradient Feather Dissolve */}
         <div
           ref={imageContainerRef}
           role="button"
           tabIndex={0}
-          aria-label="Tobias Varghese interactive portrait. Click or tap to snap shutter."
+          aria-label="Tobias Varghese portrait. Click or tap to snap shutter."
           className="group absolute bottom-0 left-1/2 w-[min(94vw,620px)] cursor-pointer select-none touch-manipulation"
           style={{
-            transform: `translate(calc(-50% - ${progress * 26}vw), ${-progress * 10}vh) scale(${1 - progress * 0.16})`,
+            transform: `translate(calc(-50% - ${isMobile ? 0 : progress * 22}vw), ${-progress * 10}vh) scale(${1 - progress * 0.16})`,
             opacity: Math.max(0, 1 - Math.pow(progress, 1.25)),
             filter: `blur(${progress * 7}px)`,
             WebkitMaskImage: `linear-gradient(to bottom, black 0%, black ${Math.max(0, 100 - progress * 135)}%, transparent 100%)`,
@@ -211,7 +214,6 @@ function Index() {
           onMouseLeave={() => setHover(false)}
           onMouseMove={(e) => {
             isInteracting.current = true;
-            lastInteractionTime.current = Date.now();
             const r = e.currentTarget.getBoundingClientRect();
             targetPos.current = {
               x: ((e.clientX - r.left) / r.width) * 100,
@@ -220,7 +222,6 @@ function Index() {
           }}
           onTouchStart={(e) => {
             isInteracting.current = true;
-            lastInteractionTime.current = Date.now();
             const touch = e.touches[0];
             if (!touch) return;
             touchStartRef.current = {
@@ -239,7 +240,6 @@ function Index() {
           }}
           onTouchMove={(e) => {
             isInteracting.current = true;
-            lastInteractionTime.current = Date.now();
             const touch = e.touches[0];
             if (!touch) return;
             const r = e.currentTarget.getBoundingClientRect();
@@ -259,7 +259,6 @@ function Index() {
               handleSnap();
             } else {
               isInteracting.current = false;
-              lastInteractionTime.current = Date.now();
               if (!isSnappedRef.current) {
                 targetR.current = 0;
               }
@@ -276,7 +275,7 @@ function Index() {
           {/* Grayscale base photo */}
           <img src={photo} alt="Tobias Varghese" className="img-mono pointer-events-none block w-full" />
 
-          {/* Dynamic color reveal photo with gimbal lerp */}
+          {/* Dynamic color reveal photo */}
           <img
             src={photo}
             alt=""
@@ -284,7 +283,7 @@ function Index() {
             className="reveal-color pointer-events-none absolute inset-0 block w-full"
           />
 
-          {/* Gimbal tracking lens ring */}
+          {/* Aperture ring overlay */}
           <div aria-hidden className="reveal-ring" />
         </div>
 
