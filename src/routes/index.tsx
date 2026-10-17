@@ -105,16 +105,6 @@ function Index() {
     let rafId: number;
 
     const animate = () => {
-      const now = performance.now();
-      const timeSinceInteraction = Date.now() - lastInteractionTime.current;
-
-      // Pillar 3: Ambient Auto-Sweep / Breathing Scanner when idle (> 1.8s)
-      if (!isInteracting.current && !isSnappedRef.current && timeSinceInteraction > 1800) {
-        const t = now * 0.0011;
-        targetPos.current.x = 50 + Math.sin(t) * 15;
-        targetPos.current.y = 38 + Math.cos(t * 1.3) * 10;
-        targetR.current = 90 + Math.sin(t * 1.8) * 12; // breathes between ~78px and 102px
-      }
 
       // Fluid head gimbal physics: lerp position with inertia
       const dx = targetPos.current.x - currentPos.current.x;
