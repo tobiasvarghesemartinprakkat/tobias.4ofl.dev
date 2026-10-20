@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { TobyTag } from "@/components/TobyTag";
+import { playClickSound } from "@/lib/sound";
 
 const links = [
   { to: "/content", label: "Content" },
@@ -14,6 +15,7 @@ export function SiteNav() {
       <Link
         to="/"
         aria-label="Tobias Varghese (toby_01)"
+        onClick={() => playClickSound()}
         className="group flex items-center text-primary transition-opacity hover:opacity-85"
       >
         <TobyTag className="h-7 w-auto sm:h-8" />
@@ -23,6 +25,7 @@ export function SiteNav() {
           <Link
             key={l.to}
             to={l.to}
+            onClick={() => playClickSound()}
             className="text-foreground/70 transition-colors hover:text-primary"
             activeProps={{ className: "text-primary" }}
             activeOptions={{ exact: true }}

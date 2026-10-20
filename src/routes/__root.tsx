@@ -11,6 +11,7 @@ import { useEffect, useRef } from "react";
 import Lenis from "lenis";
 import "lenis/dist/lenis.css";
 import { SiteNav } from "../components/SiteNav";
+import { playClickSound } from "../lib/sound";
 
 function NotFoundComponent() {
   return (
@@ -31,6 +32,7 @@ function NotFoundComponent() {
       <div className="mt-10 flex flex-wrap items-center gap-6">
         <Link
           to="/"
+          onClick={() => playClickSound()}
           className="group inline-flex items-center gap-3 text-xs font-semibold uppercase tracking-widest text-foreground transition-colors hover:text-primary"
         >
           <span>Return to Home</span>
@@ -39,6 +41,7 @@ function NotFoundComponent() {
         <span className="text-border">/</span>
         <Link
           to="/content"
+          onClick={() => playClickSound()}
           className="text-xs font-semibold uppercase tracking-widest text-muted-foreground transition-colors hover:text-primary"
         >
           View Reels ↗
@@ -46,6 +49,7 @@ function NotFoundComponent() {
         <span className="text-border">/</span>
         <Link
           to="/contact"
+          onClick={() => playClickSound()}
           className="text-xs font-semibold uppercase tracking-widest text-muted-foreground transition-colors hover:text-primary"
         >
           Contact ↗
