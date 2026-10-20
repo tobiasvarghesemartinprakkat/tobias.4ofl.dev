@@ -145,6 +145,46 @@
   }
 }
 
+/* Custom Cursor */
+@media (hover: hover) and (pointer: fine) {
+  :root,
+  html,
+  body {
+    cursor: -webkit-image-set(url("/cursor.png") 1x, url("/cursor-2x.png") 2x) 1 0,
+      url("/cursor.png") 1 0,
+      auto;
+  }
+
+  a,
+  button,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"],
+  input[type="reset"],
+  select,
+  summary,
+  label[for],
+  .cursor-pointer,
+  [role="tab"],
+  [role="menuitem"] {
+    cursor: -webkit-image-set(url("/cursor.png") 1x, url("/cursor-2x.png") 2x) 1 0,
+      url("/cursor.png") 1 0,
+      pointer !important;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="password"],
+  input[type="number"],
+  textarea,
+  [contenteditable="true"] {
+    cursor: text;
+  }
+}
+
 @utility text-giant {
   font-family: var(--font-display);
   font-size: clamp(4.25rem, 21vw, 22rem);
